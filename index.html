@@ -93,9 +93,26 @@
     cursor:pointer;
     display:flex;align-items:center;justify-content:center;
     transition:transform .12s, border-color .12s;
+    position:relative;
   }
-  .opt img{max-width:100%;max-height:100%;object-fit:contain;}
-  .opt.selected{border-color:var(--pink-dark);transform:scale(1.08);background:#fff0fa;}
+  .char-opt{
+    width:84px;height:96px;
+    flex-direction:column;
+    gap:4px;
+  }
+  .char-opt img{max-width:90%;max-height:64px;object-fit:contain;}
+  .char-opt span{font-size:.72rem;color:#a85c87;}
+  .opt.selected{border-color:var(--pink-dark);border-width:4px;transform:scale(1.08);background:#fff0fa;box-shadow:0 0 0 3px #ffd3ec;}
+  .opt.selected::after{
+    content:"選択中";
+    position:absolute;
+    top:-10px;right:-6px;
+    background:var(--pink-dark);
+    color:#fff;
+    font-size:.6rem;
+    padding:2px 6px;
+    border-radius:8px;
+  }
   .opt:active{transform:scale(.95);}
   .opt.none-opt{font-size:1.6rem;color:#cc88aa;}
 
@@ -174,7 +191,7 @@
   </div>
   <div class="slider-row">
     <label>大きさ</label>
-    <input type="range" id="scale-slider" min="30" max="180" value="100">
+    <input type="range" id="scale-slider" min="10" max="120" value="100">
   </div>
   <div class="adjust-btns">
     <button id="save-pos">この位置で保存</button>
@@ -193,12 +210,12 @@ const TIARAS  = [1,2,3,4,5,6,7,8,9].map(i => ({id:'tiara'+i, src:`tiara${i}.png`
 // デフォルトの位置・大きさ（キャラクターごと）。% はステージに対する割合、scaleは基準幅に対する倍率
 const DEFAULTS = {
   unicorn: {
-    dress: {left:50, top:66, scale:75},
-    tiara: {left:46, top:14, scale:55},
+    dress: {left:50, top:64, scale:40},
+    tiara: {left:46, top:18, scale:26},
   },
   cat: {
-    dress: {left:50, top:64, scale:78},
-    tiara: {left:50, top:16, scale:55},
+    dress: {left:50, top:62, scale:42},
+    tiara: {left:50, top:14, scale:24},
   }
 };
 

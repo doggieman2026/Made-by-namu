@@ -144,7 +144,7 @@
 
 <div id="stage-wrap">
   <div id="stage">
-    <img id="char-layer" class="layer" src="images/characters/unicorn.png" alt="character">
+    <img id="char-layer" class="layer" src="unicorn.png" alt="character">
     <img id="dress-layer" class="layer" alt="dress">
     <img id="tiara-layer" class="layer" alt="tiara">
   </div>
@@ -184,11 +184,11 @@
 
 <script>
 const CHARACTERS = [
-  {id:'unicorn', name:'ユニコーン', src:'images/characters/unicorn.png'},
-  {id:'cat',     name:'ねこ',       src:'images/characters/cat.png'},
+  {id:'unicorn', name:'ユニコーン', src:'unicorn.png'},
+  {id:'cat',     name:'ねこ',       src:'cat.png'},
 ];
-const DRESSES = [1,2,3,4,5,6].map(i => ({id:'dress'+i, src:`images/dress/dress${i}.png`}));
-const TIARAS  = [1,2,3,4,5,6,7,8,9].map(i => ({id:'tiara'+i, src:`images/tiara/tiara${i}.png`}));
+const DRESSES = [1,2,3,4,5,6].map(i => ({id:'dress'+i, src:`dress${i}.png`}));
+const TIARAS  = [1,2,3,4,5,6,7,8,9].map(i => ({id:'tiara'+i, src:`tiara${i}.png`}));
 
 // デフォルトの位置・大きさ（キャラクターごと）。% はステージに対する割合、scaleは基準幅に対する倍率
 const DEFAULTS = {

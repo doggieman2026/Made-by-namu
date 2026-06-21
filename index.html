@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>ふわたんプリンセスサロン</title>
+<style>
+  :root{
+    --pink:#ff8fc7;
+    --pink-dark:#e85aa3;
+    --bg:#fff0fb;
+    --panel:#ffffff;
+    --shadow:0 6px 16px rgba(255,143,199,.25);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  body{
+    font-family:"Hiragino Maru Gothic ProN","Yu Gothic",sans-serif;
+    text-align:center;
+    background:var(--bg);
+    margin:0;
+    padding:16px;
+    color:#5a3d52;
+  }
+  h1{
+    font-size:1.4rem;
+    color:var(--pink-dark);
+    margin:4px 0 14px;
+    text-shadow:0 2px 0 #fff;
+  }
+  /* ステージ */
+  #stage-wrap{
+    position:relative;
+    width:100%;
+    max-width:420px;
+    margin:0 auto;
+    aspect-ratio:1/1.05;
+    background:linear-gradient(180deg,#fff7fc 0%,#ffe3f3 100%);
+    border-radius:28px;
+    box-shadow:var(--shadow);
+    overflow:hidden;
+    touch-action:none;
+  }
+  #stage{
+    position:absolute;
+    inset:0;
+  }
+  #stage img.layer{
+    position:absolute;
+    user-select:none;
+    -webkit-user-drag:none;
+    pointer-events:none;
+  }
+  #char-layer{
+    left:50%;
+    top:58%;
+    width:78%;
+    transform:translate(-50%,-50%);
+  }
+  #dress-layer, #tiara-layer{
+    transform-origin:center center;
+  }
+  #dress-layer.editable, #tiara-layer.editable{
+    pointer-events:auto;
+    cursor:grab;
+    outline:2px dashed #fff;
+    outline-offset:2px;
+  }
+  #dress-layer.editable:active, #tiara-layer.editable:active{cursor:grabbing;}
+
+  .sparkle{position:absolute;font-size:1.2rem;opacity:.7;pointer-events:none;}
+
+  /* セクション */
+  section{margin-top:18px;}
+  h3{
+    font-size:.95rem;
+    color:var(--pink-dark);
+    margin:0 0 8px;
+  }
+  .row{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:8px;
+    max-width:460px;
+    margin:0 auto;
+  }
+  .opt{
+    width:64px;height:64px;
+    border-radius:14px;
+    border:3px solid #ffd3ec;
+    background:#fff;
+    padding:4px;
+    cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    transition:transform .12s, border-color .12s;
+  }
+  .opt img{max-width:100%;max-height:100%;object-fit:contain;}
+  .opt.selected{border-color:var(--pink-dark);transform:scale(1.08);background:#fff0fa;}
+  .opt:active{transform:scale(.95);}
+  .opt.none-opt{font-size:1.6rem;color:#cc88aa;}
+
+  /* 調整パネル */
+  #adjust-toggle{
+    margin-top:18px;
+    background:none;
+    border:none;
+    color:#bb88a3;
+    font-size:.8rem;
+    text-decoration:underline;
+    cursor:pointer;
+  }
+  #adjust-panel{
+    display:none;
+    max-width:420px;
+    margin:10px auto 0;
+    background:var(--panel);
+    border-radius:16px;
+    padding:14px;
+    box-shadow:var(--shadow);
+    text-align:left;
+  }
+  #adjust-panel.open{display:block;}
+  #adjust-panel p{font-size:.78rem;color:#888;margin:0 0 10px;}
+  .slider-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:.85rem;}
+  .slider-row label{width:64px;text-align:right;flex-shrink:0;}
+  .slider-row input[type=range]{flex:1;}
+  .adjust-btns{display:flex;gap:8px;margin-top:10px;}
+  .adjust-btns button{
+    flex:1;padding:8px;border-radius:10px;border:none;
+    background:var(--pink);color:#fff;font-weight:bold;cursor:pointer;
+  }
+  .adjust-btns button.reset{background:#ddd;color:#666;}
+  .target-tabs{display:flex;gap:6px;margin-bottom:10px;}
+  .target-tabs button{
+    flex:1;padding:6px;border-radius:10px;border:2px solid var(--pink);
+    background:#fff;color:var(--pink-dark);font-size:.8rem;cursor:pointer;
+  }
+  .target-tabs button.active{background:var(--pink);color:#fff;}
+</style>
+</head>
+<body>
+
+<h1>✨ ふわたんプリンセスサロン ✨</h1>
+
+<div id="stage-wrap">
+  <div id="stage">
+    <img id="char-layer" class="layer" src="images/characters/unicorn.png" alt="character">
+    <img id="dress-layer" class="layer" alt="dress">
+    <img id="tiara-layer" class="layer" alt="tiara">
+  </div>
+</div>
+
+<section>
+  <h3>キャラクター</h3>
+  <div class="row" id="char-row"></div>
+</section>
+
+<section>
+  <h3>ドレス</h3>
+  <div class="row" id="dress-row"></div>
+</section>
+
+<section>
+  <h3>ティアラ</h3>
+  <div class="row" id="tiara-row"></div>
+</section>
+
+<button id="adjust-toggle">⚙ おとうさん・おかあさん用：位置の調整</button>
+<div id="adjust-panel">
+  <p>ドレスやティアラをドラッグして位置をずらせます。大きさはスライダーで調整して、「この位置で保存」を押すと覚えます。</p>
+  <div class="target-tabs">
+    <button id="tab-dress" class="active">ドレスを調整</button>
+    <button id="tab-tiara">ティアラを調整</button>
+  </div>
+  <div class="slider-row">
+    <label>大きさ</label>
+    <input type="range" id="scale-slider" min="30" max="180" value="100">
+  </div>
+  <div class="adjust-btns">
+    <button id="save-pos">この位置で保存</button>
+    <button id="reset-pos" class="reset">初期位置に戻す</button>
+  </div>
+</div>
+
+<script>
+const CHARACTERS = [
+  {id:'unicorn', name:'ユニコーン', src:'images/characters/unicorn.png'},
+  {id:'cat',     name:'ねこ',       src:'images/characters/cat.png'},
+];
+const DRESSES = [1,2,3,4,5,6].map(i => ({id:'dress'+i, src:`images/dress/dress${i}.png`}));
+const TIARAS  = [1,2,3,4,5,6,7,8,9].map(i => ({id:'tiara'+i, src:`images/tiara/tiara${i}.png`}));
+
+// デフォルトの位置・大きさ（キャラクターごと）。% はステージに対する割合、scaleは基準幅に対する倍率
+const DEFAULTS = {
+  unicorn: {
+    dress: {left:50, top:66, scale:75},
+    tiara: {left:46, top:14, scale:55},
+  },
+  cat: {
+    dress: {left:50, top:64, scale:78},
+    tiara: {left:50, top:16, scale:55},
+  }
+};
+
+let state = {
+  character: 'unicorn',
+  dress: null,
+  tiara: null,
+};
+
+const charLayer = document.getElementById('char-layer');
+const dressLayer = document.getElementById('dress-layer');
+const tiaraLayer = document.getElementById('tiara-layer');
+const stageWrap = document.getElementById('stage-wrap');
+
+function storageKey(charId, itemId){ return `kiseru_pos_${charId}_${itemId}`; }
+
+function loadPos(charId, type, itemId){
+  const saved = localStorage.getItem(storageKey(charId, itemId));
+  if(saved) return JSON.parse(saved);
+  return {...DEFAULTS[charId][type]};
+}
+
+function applyLayerPos(layer, pos){
+  layer.style.left = pos.left + '%';
+  layer.style.top = pos.top + '%';
+  layer.style.width = pos.scale + '%';
+  layer.style.transform = 'translate(-50%,-50%)';
+}
+
+function refreshDress(){
+  if(!state.dress){ dressLayer.removeAttribute('src'); dressLayer.style.display='none'; return; }
+  const item = DRESSES.find(d=>d.id===state.dress);
+  dressLayer.src = item.src;
+  dressLayer.style.display='block';
+  applyLayerPos(dressLayer, loadPos(state.character, 'dress', state.dress));
+}
+function refreshTiara(){
+  if(!state.tiara){ tiaraLayer.removeAttribute('src'); tiaraLayer.style.display='none'; return; }
+  const item = TIARAS.find(t=>t.id===state.tiara);
+  tiaraLayer.src = item.src;
+  tiaraLayer.style.display='block';
+  applyLayerPos(tiaraLayer, loadPos(state.character, 'tiara', state.tiara));
+}
+function refreshChar(){
+  const c = CHARACTERS.find(c=>c.id===state.character);
+  charLayer.src = c.src;
+}
+function refreshAll(){ refreshChar(); refreshDress(); refreshTiara(); syncScaleSlider(); }
+
+function buildRow(containerId, items, type, stateKey, withNone){
+  const row = document.getElementById(containerId);
+  row.innerHTML='';
+  if(withNone){
+    const btn = document.createElement('div');
+    btn.className='opt none-opt'+(state[stateKey]===null?' selected':'');
+    btn.textContent='✕';
+    btn.onclick = ()=>{ state[stateKey]=null; refreshAll(); markSelected(containerId, btn); };
+    row.appendChild(btn);
+  }
+  items.forEach(item=>{
+    const btn = document.createElement('div');
+    btn.className='opt'+(state[stateKey]===item.id?' selected':'');
+    const img = document.createElement('img');
+    img.src = item.src;
+    btn.appendChild(img);
+    btn.onclick = ()=>{
+      state[stateKey]=item.id;
+      refreshAll();
+      markSelected(containerId, btn);
+    };
+    row.appendChild(btn);
+  });
+}
+function markSelected(containerId, activeBtn){
+  document.querySelectorAll('#'+containerId+' .opt').forEach(b=>b.classList.remove('selected'));
+  activeBtn.classList.add('selected');
+}
+
+function buildCharRow(){
+  const row = document.getElementById('char-row');
+  row.innerHTML='';
+  CHARACTERS.forEach(c=>{
+    const btn = document.createElement('div');
+    btn.className='opt'+(state.character===c.id?' selected':'');
+    const img = document.createElement('img');
+    img.src = c.src;
+    btn.appendChild(img);
+    btn.onclick = ()=>{
+      state.character = c.id;
+      refreshAll();
+      document.querySelectorAll('#char-row .opt').forEach(b=>b.classList.remove('selected'));
+      btn.classList.add('selected');
+    };
+    row.appendChild(btn);
+  });
+}
+
+buildCharRow();
+buildRow('dress-row', DRESSES, 'dress', 'dress', true);
+buildRow('tiara-row', TIARAS, 'tiara', 'tiara', true);
+refreshAll();
+
+/* ===== 調整モード ===== */
+const adjustToggle = document.getElementById('adjust-toggle');
+const adjustPanel = document.getElementById('adjust-panel');
+const tabDress = document.getElementById('tab-dress');
+const tabTiara = document.getElementById('tab-tiara');
+const scaleSlider = document.getElementById('scale-slider');
+let editTarget = 'dress'; // 'dress' or 'tiara'
+
+adjustToggle.onclick = ()=>{
+  adjustPanel.classList.toggle('open');
+  updateEditableLayers();
+};
+tabDress.onclick = ()=>{ editTarget='dress'; tabDress.classList.add('active'); tabTiara.classList.remove('active'); updateEditableLayers(); syncScaleSlider(); };
+tabTiara.onclick = ()=>{ editTarget='tiara'; tabTiara.classList.add('active'); tabDress.classList.remove('active'); updateEditableLayers(); syncScaleSlider(); };
+
+function updateEditableLayers(){
+  const panelOpen = adjustPanel.classList.contains('open');
+  dressLayer.classList.toggle('editable', panelOpen && editTarget==='dress');
+  tiaraLayer.classList.toggle('editable', panelOpen && editTarget==='tiara');
+}
+
+function currentLayer(){ return editTarget==='dress' ? dressLayer : tiaraLayer; }
+function currentItemId(){ return editTarget==='dress' ? state.dress : state.tiara; }
+
+function syncScaleSlider(){
+  if(!currentItemId()) return;
+  const pos = loadPos(state.character, editTarget, currentItemId());
+  scaleSlider.value = pos.scale;
+}
+
+scaleSlider.oninput = ()=>{
+  if(!currentItemId()) return;
+  const layer = currentLayer();
+  const pos = readLayerPos(layer);
+  pos.scale = Number(scaleSlider.value);
+  applyLayerPos(layer, pos);
+};
+
+function readLayerPos(layer){
+  return {
+    left: parseFloat(layer.style.left),
+    top: parseFloat(layer.style.top),
+    scale: parseFloat(layer.style.width),
+  };
+}
+
+document.getElementById('save-pos').onclick = ()=>{
+  if(!currentItemId()){ alert('先にドレスかティアラを選んでね'); return; }
+  const layer = currentLayer();
+  const pos = readLayerPos(layer);
+  localStorage.setItem(storageKey(state.character, currentItemId()), JSON.stringify(pos));
+  adjustToggle.textContent = '⚙ おとうさん・おかあさん用：位置の調整（保存しました！）';
+  setTimeout(()=>{ adjustToggle.textContent='⚙ おとうさん・おかあさん用：位置の調整'; }, 1500);
+};
+document.getElementById('reset-pos').onclick = ()=>{
+  if(!currentItemId()) return;
+  localStorage.removeItem(storageKey(state.character, currentItemId()));
+  const pos = {...DEFAULTS[state.character][editTarget]};
+  applyLayerPos(currentLayer(), pos);
+  scaleSlider.value = pos.scale;
+};
+
+/* ドラッグ移動（マウス・タッチ両対応） */
+let dragging = false, dragStart = {x:0,y:0}, startPos = null;
+
+function pointerDown(e){
+  const layer = currentLayer();
+  if(!layer.classList.contains('editable')) return;
+  if(!currentItemId()) return;
+  dragging = true;
+  const p = getPoint(e);
+  dragStart = p;
+  startPos = readLayerPos(layer);
+  e.preventDefault();
+}
+function pointerMove(e){
+  if(!dragging) return;
+  const layer = currentLayer();
+  const rect = stageWrap.getBoundingClientRect();
+  const p = getPoint(e);
+  const dxPct = (p.x - dragStart.x) / rect.width * 100;
+  const dyPct = (p.y - dragStart.y) / rect.height * 100;
+  const pos = {left: startPos.left + dxPct, top: startPos.top + dyPct, scale: startPos.scale};
+  applyLayerPos(layer, pos);
+  e.preventDefault();
+}
+function pointerUp(){ dragging=false; }
+function getPoint(e){
+  if(e.touches && e.touches[0]) return {x:e.touches[0].clientX, y:e.touches[0].clientY};
+  return {x:e.clientX, y:e.clientY};
+}
+stageWrap.addEventListener('mousedown', pointerDown);
+stageWrap.addEventListener('touchstart', pointerDown, {passive:false});
+window.addEventListener('mousemove', pointerMove);
+window.addEventListener('touchmove', pointerMove, {passive:false});
+window.addEventListener('mouseup', pointerUp);
+window.addEventListener('touchend', pointerUp);
+</script>
+</body>
+</html>
